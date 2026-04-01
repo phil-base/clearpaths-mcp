@@ -76,6 +76,16 @@ interface ApiResponse<T> {
   data: T;
 }
 
+export interface PaginatedResponse<T> {
+  data: T[];
+  meta: {
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+  };
+}
+
 export class ClearpathsClient {
   private http: AxiosInstance;
 
@@ -109,9 +119,11 @@ export class ClearpathsClient {
     parent_id?: number;
     roots_only?: boolean;
     chapter_id?: number;
-  }): Promise<Goal[]> {
-    const res = await this.http.get<ApiResponse<Goal[]>>('/api/goals', { params });
-    return res.data.data;
+    page?: number;
+    per_page?: number;
+  }): Promise<PaginatedResponse<Goal>> {
+    const res = await this.http.get<PaginatedResponse<Goal>>('/api/goals', { params });
+    return res.data;
   }
 
   async getGoal(id: number): Promise<Goal> {

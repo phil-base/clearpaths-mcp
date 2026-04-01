@@ -2,15 +2,31 @@ import { ClearpathsClient, Goal } from '../clearpaths-client.js';
 
 export async function listGoals(
   client: ClearpathsClient,
-  args: { status?: string; area_id?: number; goal_tier_id?: number; parent_id?: number; roots_only?: boolean },
+  args: {
+    status?: string;
+    area_id?: number;
+    goal_tier_id?: number;
+    parent_id?: number;
+    roots_only?: boolean;
+    page?: number;
+    per_page?: number;
+  },
 ): Promise<string> {
-  const goals = await client.listGoals(args);
+  const result = await client.listGoals(args);
 
-  if (goals.length === 0) {
+  if (result.data.length === 0) {
     return 'No goals found matching the filters.';
   }
 
-  return goals.map((g) => formatGoal(g)).join('\n\n');
+  const lines = result.data.map((g) => formatGoal(g));
+  const { current_page, last_page, total } = result.meta;
+
+  lines.push(`\n--- Page ${current_page} of ${last_page} (${total} total) ---`);
+  if (current_page < last_page) {
+    lines.push(`Use page: ${current_page + 1} to see more.`);
+  }
+
+  return lines.join('\n\n');
 }
 
 export function formatGoal(g: Goal): string {

@@ -38,13 +38,15 @@ const server = new McpServer({
 
 server.tool(
   'list_goals',
-  'List goals in the current chapter. Returns active goals by default. Filter by status, area, tier, or parent.',
+  'List goals in the current chapter (paginated, 50 per page). Returns active goals by default. Filter by status, area, tier, or parent.',
   {
     status: z.enum(['active', 'completed', 'cancelled', 'deferred']).optional().describe('Filter by goal status'),
-    area_id: z.number().optional().describe('Filter by area ID'),
-    goal_tier_id: z.number().optional().describe('Filter by goal tier ID'),
-    parent_id: z.number().optional().describe('List children of a specific goal'),
+    area_id: z.coerce.number().optional().describe('Filter by area ID'),
+    goal_tier_id: z.coerce.number().optional().describe('Filter by goal tier ID'),
+    parent_id: z.coerce.number().optional().describe('List children of a specific goal'),
     roots_only: z.boolean().optional().describe('Only return top-level goals (no parent)'),
+    page: z.coerce.number().optional().describe('Page number (default 1)'),
+    per_page: z.coerce.number().optional().describe('Results per page (default 50, max 100)'),
   },
   async (args) => {
     const text = await listGoals(client, args);
@@ -56,7 +58,7 @@ server.tool(
   'get_goal',
   'Get detailed info about a single goal, including children, blockers, and progress notes.',
   {
-    goal_id: z.number().describe('The goal ID'),
+    goal_id: z.coerce.number().describe('The goal ID'),
   },
   async (args) => {
     const text = await getGoal(client, args);
@@ -68,7 +70,7 @@ server.tool(
   'get_goal_tree',
   'Get a goal and its full hierarchy of descendants as a nested tree.',
   {
-    goal_id: z.number().describe('The root goal ID'),
+    goal_id: z.coerce.number().describe('The root goal ID'),
   },
   async (args) => {
     const text = await getGoalTree(client, args);
@@ -114,9 +116,9 @@ server.tool(
   {
     title: z.string().max(128).describe('Goal title'),
     description: z.string().max(8192).optional().describe('Optional description'),
-    area_id: z.number().optional().describe('Area ID (required for root goals, omit for sub-goals)'),
-    goal_tier_id: z.number().describe('Goal tier ID — use list_goal_tiers to see available tiers'),
-    parent_id: z.number().optional().describe('Parent goal ID (for sub-goals)'),
+    area_id: z.coerce.number().optional().describe('Area ID (required for root goals, omit for sub-goals)'),
+    goal_tier_id: z.coerce.number().describe('Goal tier ID — use list_goal_tiers to see available tiers'),
+    parent_id: z.coerce.number().optional().describe('Parent goal ID (for sub-goals)'),
   },
   async (args) => {
     const text = await createGoal(client, args);
@@ -128,12 +130,12 @@ server.tool(
   'update_goal',
   'Update an existing goal\'s title, description, area, tier, or parent.',
   {
-    goal_id: z.number().describe('The goal ID to update'),
+    goal_id: z.coerce.number().describe('The goal ID to update'),
     title: z.string().max(128).optional().describe('New title'),
     description: z.string().max(8192).optional().describe('New description'),
-    area_id: z.number().optional().describe('New area ID'),
-    goal_tier_id: z.number().optional().describe('New tier ID'),
-    parent_id: z.number().optional().describe('New parent goal ID'),
+    area_id: z.coerce.number().optional().describe('New area ID'),
+    goal_tier_id: z.coerce.number().optional().describe('New tier ID'),
+    parent_id: z.coerce.number().optional().describe('New parent goal ID'),
   },
   async (args) => {
     const text = await updateGoal(client, args);
@@ -145,7 +147,7 @@ server.tool(
   'delete_goal',
   'Delete a goal and all its descendants. This is irreversible.',
   {
-    goal_id: z.number().describe('The goal ID to delete'),
+    goal_id: z.coerce.number().describe('The goal ID to delete'),
   },
   async (args) => {
     const text = await deleteGoal(client, args);
@@ -157,7 +159,7 @@ server.tool(
   'complete_goal',
   'Mark a goal as complete. All sub-goals must be completed or cancelled first. Optionally add a completion note.',
   {
-    goal_id: z.number().describe('The goal ID to complete'),
+    goal_id: z.coerce.number().describe('The goal ID to complete'),
     note: z.string().max(2000).optional().describe('Optional completion note'),
   },
   async (args) => {
@@ -170,7 +172,7 @@ server.tool(
   'cancel_goal',
   'Cancel a goal. All sub-goals must be completed or cancelled first. Optionally add a note.',
   {
-    goal_id: z.number().describe('The goal ID to cancel'),
+    goal_id: z.coerce.number().describe('The goal ID to cancel'),
     note: z.string().max(2000).optional().describe('Optional cancellation note'),
   },
   async (args) => {
@@ -183,7 +185,7 @@ server.tool(
   'defer_goal',
   'Defer a goal — hides it from execution views but keeps it in planning views.',
   {
-    goal_id: z.number().describe('The goal ID to defer'),
+    goal_id: z.coerce.number().describe('The goal ID to defer'),
     note: z.string().max(2000).optional().describe('Optional note explaining why'),
   },
   async (args) => {
@@ -196,7 +198,7 @@ server.tool(
   'undefer_goal',
   'Undefer a goal — bring it back to active status.',
   {
-    goal_id: z.number().describe('The goal ID to undefer'),
+    goal_id: z.coerce.number().describe('The goal ID to undefer'),
   },
   async (args) => {
     const text = await undeferGoal(client, args);
@@ -208,8 +210,8 @@ server.tool(
   'block_goal',
   'Mark a goal as blocked by another goal. The blocker must be completed before the blocked goal can proceed.',
   {
-    goal_id: z.number().describe('The goal that is blocked'),
-    blocking_goal_id: z.number().describe('The goal that is blocking it'),
+    goal_id: z.coerce.number().describe('The goal that is blocked'),
+    blocking_goal_id: z.coerce.number().describe('The goal that is blocking it'),
   },
   async (args) => {
     const text = await blockGoal(client, args);
@@ -221,8 +223,8 @@ server.tool(
   'unblock_goal',
   'Remove a blocking relationship between two goals.',
   {
-    goal_id: z.number().describe('The blocked goal'),
-    blocking_goal_id: z.number().describe('The blocker to remove'),
+    goal_id: z.coerce.number().describe('The blocked goal'),
+    blocking_goal_id: z.coerce.number().describe('The blocker to remove'),
   },
   async (args) => {
     const text = await unblockGoal(client, args);
@@ -234,7 +236,7 @@ server.tool(
   'add_progress_note',
   'Add a progress note (comment) to a goal. Progress notes track updates over time.',
   {
-    goal_id: z.number().describe('The goal ID'),
+    goal_id: z.coerce.number().describe('The goal ID'),
     body: z.string().max(2000).describe('The note text'),
   },
   async (args) => {
@@ -247,7 +249,7 @@ server.tool(
   'list_progress_notes',
   'List all progress notes on a goal, newest first.',
   {
-    goal_id: z.number().describe('The goal ID'),
+    goal_id: z.coerce.number().describe('The goal ID'),
   },
   async (args) => {
     const text = await listProgressNotes(client, args);
@@ -277,8 +279,8 @@ server.resource('current-chapter', 'clearpaths://chapters/current', async (uri) 
 });
 
 server.resource('blocked-goals', 'clearpaths://goals/blocked', async (uri) => {
-  const goals = await client.listGoals({ status: 'active' });
-  const blocked = goals.filter((g) => g.is_blocked);
+  const result = await client.listGoals({ status: 'active', per_page: 100 });
+  const blocked = result.data.filter((g) => g.is_blocked);
 
   if (blocked.length === 0) {
     return { contents: [{ uri: uri.href, mimeType: 'text/plain', text: 'No blocked goals.' }] };
