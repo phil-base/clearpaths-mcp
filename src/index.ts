@@ -38,9 +38,9 @@ const server = new McpServer({
 
 server.tool(
   'list_goals',
-  'List goals in the current chapter (paginated, 50 per page). Returns active goals by default. Filter by status, area, tier, or parent.',
+  'List goals in the current chapter (paginated, 50 per page). Defaults to "actionable" — goals you can act on now (not blocked, not deferred, not completed). Use status "active" to include blocked/deferred, "all" to include everything.',
   {
-    status: z.enum(['active', 'completed', 'cancelled', 'deferred']).optional().describe('Filter by goal status'),
+    status: z.enum(['actionable', 'active', 'blocked', 'completed', 'cancelled', 'deferred', 'all']).optional().default('actionable').describe('Filter: actionable (default), active (includes blocked/deferred), blocked, completed, cancelled, deferred, all'),
     area_id: z.coerce.number().optional().describe('Filter by area ID'),
     goal_tier_id: z.coerce.number().optional().describe('Filter by goal tier ID'),
     parent_id: z.coerce.number().optional().describe('List children of a specific goal'),
