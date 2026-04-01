@@ -1,0 +1,27 @@
+{
+  "name": "clearpaths-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for Clearpaths goal tracking — lets AI assistants read and manage your goals",
+  "main": "dist/index.js",
+  "bin": {
+    "clearpaths-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": ["mcp", "goals", "clearpaths", "ai", "claude"],
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.8.0",
+    "axios": "^1.7.0",
+    "dotenv": "^16.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}
