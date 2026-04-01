@@ -126,6 +126,25 @@ export class ClearpathsClient {
     return res.data;
   }
 
+  async listAllGoals(params?: {
+    status?: string;
+    area_id?: number;
+    goal_tier_id?: number;
+    parent_id?: number;
+    roots_only?: boolean;
+  }): Promise<Goal[]> {
+    const all: Goal[] = [];
+    let page = 1;
+    let lastPage = 1;
+    do {
+      const res = await this.listGoals({ ...params, page, per_page: 100 });
+      all.push(...res.data);
+      lastPage = res.meta.last_page;
+      page++;
+    } while (page <= lastPage);
+    return all;
+  }
+
   async getGoal(id: number): Promise<Goal> {
     const res = await this.http.get<ApiResponse<Goal>>(`/api/goals/${id}`);
     return res.data.data;

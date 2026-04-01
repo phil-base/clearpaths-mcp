@@ -19,6 +19,7 @@ import {
 } from './tools/manage-goals.js';
 import { addProgressNote, listProgressNotes } from './tools/comments.js';
 import { listAreas, listGoalTiers, getSummary } from './tools/context.js';
+import { whatCanIDo, reviewArea, breakDownGoal, whatIsStuck, chapterPulse, focusCheck } from './tools/workflows.js';
 
 const { CLEARPATHS_URL, CLEARPATHS_TOKEN } = process.env;
 
@@ -253,6 +254,72 @@ server.tool(
   },
   async (args) => {
     const text = await listProgressNotes(client, args);
+    return { content: [{ type: 'text', text }] };
+  },
+);
+
+// ─── Workflow tools ──────────────────────────────────────────
+
+server.tool(
+  'what_can_i_do',
+  'Show actionable leaf goals grouped by area — things you can do right now. These are unblocked, non-deferred goals with no active children. Start here when deciding what to work on.',
+  {},
+  async () => {
+    const text = await whatCanIDo(client);
+    return { content: [{ type: 'text', text }] };
+  },
+);
+
+server.tool(
+  'review_area',
+  'Review an area: goal tree with completion rollup per tier, stale goals flagged, recently completed shown. Use this for periodic area reviews.',
+  {
+    area_id: z.coerce.number().describe('Area ID — use list_areas to see available areas'),
+  },
+  async (args) => {
+    const text = await reviewArea(client, args.area_id);
+    return { content: [{ type: 'text', text }] };
+  },
+);
+
+server.tool(
+  'break_down_goal',
+  'Prepare to decompose a goal into sub-goals at the next tier level. Returns context and instructions — does NOT create goals. Ask the user to approve suggestions before creating.',
+  {
+    goal_id: z.coerce.number().describe('The goal to break down'),
+  },
+  async (args) => {
+    const text = await breakDownGoal(client, args.goal_id);
+    return { content: [{ type: 'text', text }] };
+  },
+);
+
+server.tool(
+  'what_is_stuck',
+  'Show blocked goals with their blocking chains, stale goals with no activity in 2+ weeks, and highest-impact unblockers. Use this to identify and resolve friction.',
+  {},
+  async () => {
+    const text = await whatIsStuck(client);
+    return { content: [{ type: 'text', text }] };
+  },
+);
+
+server.tool(
+  'chapter_pulse',
+  'Chapter-level progress report: completion stats by area and tier, recently completed goals, overall health. Use this to check if you\'re making progress in the current chapter.',
+  {},
+  async () => {
+    const text = await chapterPulse(client);
+    return { content: [{ type: 'text', text }] };
+  },
+);
+
+server.tool(
+  'focus_check',
+  'Compare where your actionable goals sit against your chapter focus. Shows action distribution by area with a visual bar chart, empty areas, and reflection questions. Use this to detect drift.',
+  {},
+  async () => {
+    const text = await focusCheck(client);
     return { content: [{ type: 'text', text }] };
   },
 );
