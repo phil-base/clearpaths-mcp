@@ -2,6 +2,12 @@
 
 An [MCP (Model Context Protocol)](https://modelcontextprotocol.io) server that lets AI assistants read and manage your goals in [Clearpaths](https://app.clearpaths.pro).
 
+[Clearpaths](https://app.clearpaths.pro) is a personal goal tracker that organises goals into areas, tiers, and parent-child hierarchies. This MCP server lets you ask your AI assistant to review your goal tree, add progress notes, reorganise priorities, or track blockers — without leaving the conversation.
+
+## Requirements
+
+- Node.js >= 18
+
 ## Setup
 
 ### 1. Get an API token
@@ -46,14 +52,39 @@ Add to your Claude Code MCP settings:
 }
 ```
 
-### Or run locally
+### Or run from a local clone
 
 ```bash
 git clone https://github.com/phil-base/clearpaths-mcp.git
 cd clearpaths-mcp
 npm install
+npm run build
+```
+
+Then point your MCP config at the built server:
+
+```json
+{
+  "mcpServers": {
+    "clearpaths": {
+      "command": "node",
+      "args": ["/absolute/path/to/clearpaths-mcp/dist/index.js"],
+      "env": {
+        "CLEARPATHS_URL": "https://app.clearpaths.pro",
+        "CLEARPATHS_TOKEN": "your-api-token-here"
+      }
+    }
+  }
+}
+```
+
+## Development
+
+```bash
 cp .env.example .env  # edit with your URL and token
-npm run dev
+npm run dev            # runs with tsx (auto-reloads on save)
+npm run build          # compile TypeScript to dist/
+npm start              # run the compiled server
 ```
 
 ## Tools
