@@ -32,8 +32,9 @@ function formatGoalDetail(g: Goal): string {
   if (g.parent_id) lines.push(`Parent: #${g.parent_id}`);
 
   if (g.children && g.children.length > 0) {
+    const children = [...g.children].sort((a, b) => a.sort_order - b.sort_order);
     lines.push(`\nChildren (${g.children.length}):`);
-    for (const c of g.children) {
+    for (const c of children) {
       const cs = c.completed_at ? '✅' : c.cancelled_at ? '❌' : c.deferred ? '⏸️' : c.is_blocked ? '🚫' : '🟢';
       lines.push(`  ${cs} [${c.id}] ${c.title}`);
     }
@@ -68,7 +69,8 @@ function formatTree(g: Goal, depth: number): string {
   const lines = [line];
 
   if (g.children) {
-    for (const child of g.children) {
+    const children = [...g.children].sort((a, b) => a.sort_order - b.sort_order);
+    for (const child of children) {
       lines.push(formatTree(child, depth + 1));
     }
   }
