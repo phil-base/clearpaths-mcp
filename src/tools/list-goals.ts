@@ -8,6 +8,7 @@ export async function listGoals(
     goal_tier_id?: number;
     parent_id?: number;
     roots_only?: boolean;
+    search?: string;
     page?: number;
     per_page?: number;
   },

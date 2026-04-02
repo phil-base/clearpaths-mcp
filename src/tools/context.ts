@@ -22,6 +22,38 @@ export async function listGoalTiers(client: ClearpathsClient): Promise<string> {
     .join('\n');
 }
 
+export async function createArea(
+  client: ClearpathsClient,
+  args: { description: string },
+): Promise<string> {
+  const area = await client.createArea(args.description);
+  return `Created area [${area.id}] "${area.description}" (sort: ${area.sort_order})`;
+}
+
+export async function updateArea(
+  client: ClearpathsClient,
+  args: { area_id: number; description: string },
+): Promise<string> {
+  const area = await client.updateArea(args.area_id, args.description);
+  return `Updated area [${area.id}] → "${area.description}"`;
+}
+
+export async function deleteArea(
+  client: ClearpathsClient,
+  args: { area_id: number },
+): Promise<string> {
+  await client.deleteArea(args.area_id);
+  return `Deleted area [${args.area_id}]`;
+}
+
+export async function reorderAreas(
+  client: ClearpathsClient,
+  args: { area_ids: number[] },
+): Promise<string> {
+  await client.reorderAreas(args.area_ids);
+  return `Reordered ${args.area_ids.length} areas.`;
+}
+
 export async function getSummary(client: ClearpathsClient): Promise<string> {
   const s = await client.getGoalSummary();
 

@@ -119,6 +119,7 @@ export class ClearpathsClient {
     parent_id?: number;
     roots_only?: boolean;
     chapter_id?: number;
+    search?: string;
     page?: number;
     per_page?: number;
   }): Promise<PaginatedResponse<Goal>> {
@@ -251,6 +252,24 @@ export class ClearpathsClient {
       params: chapterId ? { chapter_id: chapterId } : undefined,
     });
     return res.data.data;
+  }
+
+  async createArea(description: string): Promise<Area> {
+    const res = await this.http.post<ApiResponse<Area>>('/api/areas', { description });
+    return res.data.data;
+  }
+
+  async updateArea(id: number, description: string): Promise<Area> {
+    const res = await this.http.patch<ApiResponse<Area>>(`/api/areas/${id}`, { description });
+    return res.data.data;
+  }
+
+  async deleteArea(id: number): Promise<void> {
+    await this.http.delete(`/api/areas/${id}`);
+  }
+
+  async reorderAreas(areaIds: number[]): Promise<void> {
+    await this.http.post('/api/areas/reorder', { order: areaIds });
   }
 
   // Goal Tiers

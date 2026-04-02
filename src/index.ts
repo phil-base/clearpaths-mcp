@@ -19,7 +19,7 @@ import {
   unblockGoal,
 } from './tools/manage-goals.js';
 import { addProgressNote, listProgressNotes } from './tools/comments.js';
-import { listAreas, listGoalTiers, getSummary } from './tools/context.js';
+import { listAreas, createArea, updateArea, deleteArea, reorderAreas, listGoalTiers, getSummary } from './tools/context.js';
 import { whatCanIDo, reviewArea, breakDownGoal, whatIsStuck, chapterPulse, focusCheck } from './tools/workflows.js';
 
 const { CLEARPATHS_URL, CLEARPATHS_TOKEN } = process.env;
@@ -59,6 +59,7 @@ server.tool(
     goal_tier_id: z.coerce.number().optional().describe('Filter by goal tier ID'),
     parent_id: z.coerce.number().optional().describe('List children of a specific goal'),
     roots_only: z.boolean().optional().describe('Only return top-level goals (no parent)'),
+    search: z.string().optional().describe('Search goals by title (partial match)'),
     page: z.coerce.number().optional().describe('Page number (default 1)'),
     per_page: z.coerce.number().optional().describe('Results per page (default 50, max 100)'),
   },
@@ -118,6 +119,55 @@ server.tool(
   {},
   async () => {
     const text = await listGoalTiers(client);
+    return { content: [{ type: 'text', text }] };
+  },
+);
+
+server.tool(
+  'create_area',
+  'Create a new area (life category) in the current chapter.',
+  {
+    description: z.string().max(255).describe('Area name'),
+  },
+  async (args) => {
+    const text = await createArea(client, args);
+    return { content: [{ type: 'text', text }] };
+  },
+);
+
+server.tool(
+  'update_area',
+  'Rename an existing area.',
+  {
+    area_id: z.coerce.number().describe('Area ID — use list_areas to see available areas'),
+    description: z.string().max(255).describe('New area name'),
+  },
+  async (args) => {
+    const text = await updateArea(client, args);
+    return { content: [{ type: 'text', text }] };
+  },
+);
+
+server.tool(
+  'delete_area',
+  'Delete an area. Only works if no goals are assigned to it.',
+  {
+    area_id: z.coerce.number().describe('Area ID to delete'),
+  },
+  async (args) => {
+    const text = await deleteArea(client, args);
+    return { content: [{ type: 'text', text }] };
+  },
+);
+
+server.tool(
+  'reorder_areas',
+  'Reorder areas by providing area IDs in the desired order.',
+  {
+    area_ids: z.array(z.coerce.number()).describe('Array of area IDs in desired order'),
+  },
+  async (args) => {
+    const text = await reorderAreas(client, args);
     return { content: [{ type: 'text', text }] };
   },
 );
