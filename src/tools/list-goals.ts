@@ -1,4 +1,4 @@
-import { ClearpathsClient, Goal } from '../clearpaths-client.js';
+import { ClearpathsClient, Goal, Area } from '../clearpaths-client.js';
 
 export async function listGoals(
   client: ClearpathsClient,
@@ -27,6 +27,45 @@ export async function listGoals(
   }
 
   return lines.join('\n\n');
+}
+
+export async function listTopLevelGoals(
+  client: ClearpathsClient,
+  args: { status?: string },
+): Promise<string> {
+  const [goals, areas] = await Promise.all([
+    client.listAllGoals({ roots_only: true, status: args.status ?? 'all' }),
+    client.listAreas(),
+  ]);
+
+  if (goals.length === 0) {
+    return 'No top-level goals found.';
+  }
+
+  const areaMap = new Map<number, Area>(areas.map((a) => [a.id, a]));
+  const grouped = new Map<string, Goal[]>();
+
+  for (const g of goals) {
+    const areaName = g.effective_area?.description ?? g.area?.description
+      ?? (g.effective_area_id != null ? areaMap.get(g.effective_area_id)?.description : undefined)
+      ?? '(no area)';
+    if (!grouped.has(areaName)) grouped.set(areaName, []);
+    grouped.get(areaName)!.push(g);
+  }
+
+  const lines: string[] = [`Top-level goals (${goals.length} total):\n`];
+
+  for (const [areaName, areaGoals] of grouped) {
+    lines.push(`## ${areaName}`);
+    for (const g of areaGoals) {
+      const status = g.completed_at ? '✅' : g.cancelled_at ? '❌' : g.deferred ? '⏸️' : g.is_blocked ? '🚫' : '🟢';
+      const tier = g.goal_tier?.description ? ` (${g.goal_tier.description})` : '';
+      lines.push(`  ${status} [${g.id}] ${g.title}${tier}`);
+    }
+    lines.push('');
+  }
+
+  return lines.join('\n');
 }
 
 export function formatGoal(g: Goal): string {

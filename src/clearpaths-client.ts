@@ -175,6 +175,8 @@ export class ClearpathsClient {
       area_id?: number;
       goal_tier_id?: number;
       parent_id?: number;
+      sort_order?: number;
+      sequential_children?: boolean;
     },
   ): Promise<Goal> {
     const res = await this.http.patch<ApiResponse<Goal>>(`/api/goals/${id}`, data);

@@ -4,11 +4,12 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
 import { ClearpathsClient } from './clearpaths-client.js';
-import { listGoals } from './tools/list-goals.js';
+import { listGoals, listTopLevelGoals } from './tools/list-goals.js';
 import { getGoal, getGoalTree } from './tools/get-goal.js';
 import {
   createGoal,
   updateGoal,
+  reorderChildren,
   deleteGoal,
   completeGoal,
   cancelGoal,
@@ -36,6 +37,18 @@ const server = new McpServer({
 });
 
 // ─── Read tools ──────────────────────────────────────────────
+
+server.tool(
+  'list_top_level_goals',
+  'List all top-level (root) goals grouped by area. Use this as the entry point for navigating the full goal hierarchy — then drill into individual trees with get_goal_tree.',
+  {
+    status: z.enum(['active', 'completed', 'cancelled', 'deferred', 'all']).optional().default('all').describe('Filter by status (default: all)'),
+  },
+  async (args) => {
+    const text = await listTopLevelGoals(client, args);
+    return { content: [{ type: 'text', text }] };
+  },
+);
 
 server.tool(
   'list_goals',
@@ -129,7 +142,7 @@ server.tool(
 
 server.tool(
   'update_goal',
-  'Update an existing goal\'s title, description, area, tier, or parent.',
+  'Update an existing goal\'s title, description, area, tier, parent, sort order, or sequential_children flag.',
   {
     goal_id: z.coerce.number().describe('The goal ID to update'),
     title: z.string().max(128).optional().describe('New title'),
@@ -137,9 +150,24 @@ server.tool(
     area_id: z.coerce.number().optional().describe('New area ID'),
     goal_tier_id: z.coerce.number().optional().describe('New tier ID'),
     parent_id: z.coerce.number().optional().describe('New parent goal ID'),
+    sort_order: z.coerce.number().optional().describe('Position among siblings (1-based)'),
+    sequential_children: z.boolean().optional().describe('Whether children must be completed in order'),
   },
   async (args) => {
     const text = await updateGoal(client, args);
+    return { content: [{ type: 'text', text }] };
+  },
+);
+
+server.tool(
+  'reorder_children',
+  'Set the order of sub-goals under a parent by providing the full ordered list of child goal IDs. The first ID becomes sort_order 1, second becomes 2, etc.',
+  {
+    parent_id: z.coerce.number().describe('The parent goal ID'),
+    goal_ids: z.array(z.coerce.number()).describe('Child goal IDs in the desired order'),
+  },
+  async (args) => {
+    const text = await reorderChildren(client, args);
     return { content: [{ type: 'text', text }] };
   },
 );

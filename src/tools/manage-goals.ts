@@ -23,11 +23,24 @@ export async function updateGoal(
     area_id?: number;
     goal_tier_id?: number;
     parent_id?: number;
+    sort_order?: number;
+    sequential_children?: boolean;
   },
 ): Promise<string> {
   const { goal_id, ...data } = args;
   const goal = await client.updateGoal(goal_id, data);
   return `Updated goal [${goal.id}] "${goal.title}"`;
+}
+
+export async function reorderChildren(
+  client: ClearpathsClient,
+  args: { parent_id: number; goal_ids: number[] },
+): Promise<string> {
+  const results = await Promise.all(
+    args.goal_ids.map((id, index) => client.updateGoal(id, { sort_order: index + 1 })),
+  );
+  const lines = results.map((g, i) => `  ${i + 1}. [${g.id}] "${g.title}" → sort_order=${i + 1}`);
+  return [`Reordered ${results.length} children of goal [${args.parent_id}]:`, ...lines].join('\n');
 }
 
 export async function deleteGoal(client: ClearpathsClient, args: { goal_id: number }): Promise<string> {
