@@ -444,6 +444,11 @@ server.resource('goal-summary', 'clearpaths://goals/summary', async (uri) => {
   return { contents: [{ uri: uri.href, mimeType: 'text/plain', text }] };
 });
 
+server.resource('ai-context', 'clearpaths://context', async (uri) => {
+  const data = await client.getContext();
+  return { contents: [{ uri: uri.href, mimeType: 'application/json', text: JSON.stringify(data, null, 2) }] };
+});
+
 // ─── Start ───────────────────────────────────────────────────
 
 async function main() {

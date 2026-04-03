@@ -116,6 +116,7 @@ npm start              # run the compiled server
 | Current Chapter | `clearpaths://chapters/current` | Current chapter info |
 | Blocked Goals | `clearpaths://goals/blocked` | Goals that are currently blocked |
 | Goal Summary | `clearpaths://goals/summary` | Counts of goals by status |
+| AI Context | `clearpaths://context` | Philosophy, guidance, domain model, and current chapter state for AI consumers |
 
 ## Token Abilities
 

@@ -279,4 +279,10 @@ export class ClearpathsClient {
     });
     return res.data.data;
   }
+
+  // AI Context
+  async getContext(): Promise<unknown> {
+    const res = await this.http.get('/api/context');
+    return res.data;
+  }
 }
