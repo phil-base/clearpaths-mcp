@@ -1,6 +1,6 @@
 {
   "name": "clearpaths-mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "MCP server for Clearpaths goal tracking — lets AI assistants read and manage your goals",
   "main": "dist/index.js",
   "bin": {
@@ -13,8 +13,18 @@
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "npm run build"
   },
-  "keywords": ["mcp", "goals", "clearpaths", "ai", "claude"],
-  "files": ["dist", "README.md", ".env.example"],
+  "keywords": [
+    "mcp",
+    "goals",
+    "clearpaths",
+    "ai",
+    "claude"
+  ],
+  "files": [
+    "dist",
+    "README.md",
+    ".env.example"
+  ],
   "engines": {
     "node": ">=18"
   },
