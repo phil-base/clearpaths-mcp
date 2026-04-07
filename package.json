@@ -1,6 +1,6 @@
 {
   "name": "clearpaths-mcp",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "MCP server for Clearpaths goal tracking — lets AI assistants read and manage your goals",
   "main": "dist/index.js",
   "bin": {
