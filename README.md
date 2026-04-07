@@ -108,6 +108,14 @@ npm start              # run the compiled server
 | `unblock_goal` | Remove a blocking relationship |
 | `add_progress_note` | Add a progress note to a goal |
 | `list_progress_notes` | List all progress notes on a goal |
+| `what_can_i_do` | Actionable leaf goals grouped by area |
+| `needs_planning` | Leaf goals that need breaking down (not at the lowest tier) |
+| `needs_execution` | Leaf goals ready to do now (at the lowest tier) |
+| `review_area` | Area review with completion rollup, stale goals, tree view |
+| `break_down_goal` | Prepare to decompose a goal into sub-goals at the next tier |
+| `what_is_stuck` | Blocked goals, stale goals, and highest-impact unblockers |
+| `chapter_pulse` | Chapter progress: completion by area/tier, recent completions |
+| `focus_check` | Action distribution vs chapter focus, drift detection |
 
 ## Resources
 

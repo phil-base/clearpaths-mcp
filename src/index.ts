@@ -20,7 +20,7 @@ import {
 } from './tools/manage-goals.js';
 import { addProgressNote, listProgressNotes } from './tools/comments.js';
 import { listAreas, createArea, updateArea, deleteArea, reorderAreas, listGoalTiers, getSummary } from './tools/context.js';
-import { whatCanIDo, reviewArea, breakDownGoal, whatIsStuck, chapterPulse, focusCheck } from './tools/workflows.js';
+import { whatCanIDo, needsPlanning, needsExecution, reviewArea, breakDownGoal, whatIsStuck, chapterPulse, focusCheck } from './tools/workflows.js';
 
 const { CLEARPATHS_URL, CLEARPATHS_TOKEN } = process.env;
 
@@ -344,6 +344,26 @@ server.tool(
   {},
   async () => {
     const text = await whatCanIDo(client);
+    return { content: [{ type: 'text', text }] };
+  },
+);
+
+server.tool(
+  'needs_planning',
+  'Goals that need to be broken down further — active leaf goals NOT at the lowest tier. These need decomposition before they\'re actionable. Use break_down_goal on each one.',
+  {},
+  async () => {
+    const text = await needsPlanning(client);
+    return { content: [{ type: 'text', text }] };
+  },
+);
+
+server.tool(
+  'needs_execution',
+  'Goals ready to do right now — active leaf goals AT the lowest tier (e.g. daily/weekly actions). Complete them with complete_goal.',
+  {},
+  async () => {
+    const text = await needsExecution(client);
     return { content: [{ type: 'text', text }] };
   },
 );

@@ -45,6 +45,108 @@ export async function whatCanIDo(client: ClearpathsClient): Promise<string> {
 }
 
 /**
+ * needs_planning — Active leaf goals that are NOT at the lowest tier.
+ * These need to be broken down into more specific sub-goals before they're actionable.
+ * Mirrors the "planning" mode of the Clearpaths actions view.
+ */
+export async function needsPlanning(client: ClearpathsClient): Promise<string> {
+  const [goals, areas, tiers] = await Promise.all([
+    client.listAllGoals({ status: 'actionable' }),
+    client.listAreas(),
+    client.listGoalTiers(),
+  ]);
+
+  const tiersSorted = [...tiers].sort((a, b) => a.sort_order - b.sort_order);
+  const lowestTier = tiersSorted[tiersSorted.length - 1];
+  if (!lowestTier) return 'No goal tiers configured.';
+
+  // Find leaf goals — goals that have no children in the active set
+  const parentIds = new Set(goals.filter((g) => g.parent_id).map((g) => g.parent_id));
+  const leaves = goals.filter((g) => !parentIds.has(g.id));
+
+  // Planning = leaves NOT at the lowest tier
+  const planning = leaves.filter((g) => g.goal_tier_id !== lowestTier.id);
+
+  if (planning.length === 0) {
+    return 'Nothing needs planning — all leaf goals are already at the execution level.';
+  }
+
+  const areaMap = new Map(areas.map((a) => [a.id, a]));
+  const tierMap = new Map(tiers.map((t) => [t.id, t]));
+  const grouped = new Map<string, Goal[]>();
+
+  for (const g of planning) {
+    const areaName = areaMap.get(g.effective_area_id ?? 0)?.description ?? '(no area)';
+    if (!grouped.has(areaName)) grouped.set(areaName, []);
+    grouped.get(areaName)!.push(g);
+  }
+
+  const lines: string[] = [`## Needs Planning (${planning.length} goals)\n`];
+  lines.push(`These goals don't break down to ${lowestTier.description}-level actions yet. Use break_down_goal to decompose them.\n`);
+
+  for (const [area, areaGoals] of grouped) {
+    lines.push(`### ${area} (${areaGoals.length})`);
+    for (const g of areaGoals) {
+      const tier = tierMap.get(g.goal_tier_id)?.description ?? '';
+      lines.push(`  [${g.id}] ${g.title} (${tier})`);
+    }
+    lines.push('');
+  }
+
+  return lines.join('\n');
+}
+
+/**
+ * needs_execution — Active leaf goals AT the lowest tier.
+ * These are ready to do — no further breakdown needed.
+ * Mirrors the "execution" mode of the Clearpaths actions view.
+ */
+export async function needsExecution(client: ClearpathsClient): Promise<string> {
+  const [goals, areas, tiers] = await Promise.all([
+    client.listAllGoals({ status: 'actionable' }),
+    client.listAreas(),
+    client.listGoalTiers(),
+  ]);
+
+  const tiersSorted = [...tiers].sort((a, b) => a.sort_order - b.sort_order);
+  const lowestTier = tiersSorted[tiersSorted.length - 1];
+  if (!lowestTier) return 'No goal tiers configured.';
+
+  // Find leaf goals — goals that have no children in the active set
+  const parentIds = new Set(goals.filter((g) => g.parent_id).map((g) => g.parent_id));
+  const leaves = goals.filter((g) => !parentIds.has(g.id));
+
+  // Execution = leaves AT the lowest tier
+  const execution = leaves.filter((g) => g.goal_tier_id === lowestTier.id);
+
+  if (execution.length === 0) {
+    return `No ${lowestTier.description}-level goals ready for execution. Use needs_planning to see what needs to be broken down.`;
+  }
+
+  const areaMap = new Map(areas.map((a) => [a.id, a]));
+  const grouped = new Map<string, Goal[]>();
+
+  for (const g of execution) {
+    const areaName = areaMap.get(g.effective_area_id ?? 0)?.description ?? '(no area)';
+    if (!grouped.has(areaName)) grouped.set(areaName, []);
+    grouped.get(areaName)!.push(g);
+  }
+
+  const lines: string[] = [`## Needs Execution (${execution.length} ${lowestTier.description}-level actions)\n`];
+  lines.push(`These are ready to do right now. Complete them with complete_goal.\n`);
+
+  for (const [area, areaGoals] of grouped) {
+    lines.push(`### ${area} (${areaGoals.length})`);
+    for (const g of areaGoals) {
+      lines.push(`  [${g.id}] ${g.title}`);
+    }
+    lines.push('');
+  }
+
+  return lines.join('\n');
+}
+
+/**
  * review_area — Full tree view of an area with completion rollup.
  * Philosophy: Reviews maintain the system. Structural progress at a glance.
  */
