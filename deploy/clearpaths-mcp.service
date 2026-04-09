@@ -1,0 +1,24 @@
+[Unit]
+Description=Clearpaths MCP Server (Streamable HTTP)
+After=network.target
+
+[Service]
+Type=simple
+User=phil
+WorkingDirectory=/var/www/clearpaths-mcp
+ExecStart=/usr/bin/node dist/index.js
+Restart=on-failure
+RestartSec=5
+
+Environment=TRANSPORT=http
+Environment=PORT=3001
+Environment=CLEARPATHS_URL=https://app.clearpaths.pro
+Environment=NODE_ENV=production
+
+# Logging to journald
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=clearpaths-mcp
+
+[Install]
+WantedBy=multi-user.target
