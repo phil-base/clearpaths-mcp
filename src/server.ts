@@ -21,6 +21,25 @@ import { whatCanIDo, needsPlanning, needsExecution, reviewArea, breakDownGoal, w
 
 const VERSION = '0.1.2';
 
+const CLEARPATHS_PHILOSOPHY = {
+  principle: 'Plan maximally, execute minimally.',
+  goal_tree: [
+    'You are building a complete goal tree. A complete goal tree has all goals broken down into sub-goals that are sufficient to achieve the parent goal, iterated down the tree until all goals are specified for today (the lowest tier).',
+    'One exception to completeness: a goal may be too uncertain to plan now — it may depend on a prior goal completing, on research, or simply be too far in the future. Leave those un-decomposed.',
+  ],
+  sequencing: [
+    'Strong bias to sequential goals: only one sub-goal is active at a time. Disable sequential on a parent only when all sub-goals genuinely need to be active in parallel.',
+    'Sub-goals must be ordered correctly — sequence matters.',
+  ],
+  titles_and_descriptions: [
+    'Goal titles must be as descriptive as possible — they appear outside the context of their goal tree.',
+    'Add full descriptions. Goals should be actionable, and the context that created the goal tree should be present inside the goal tree itself.',
+  ],
+  long_running_work: 'For long-running goals, follow the pattern: start (do once, e.g. "write 500 words"), draft complete, review draft, publish.',
+  recurring_work: 'Where something needs to repeat, the goal is to create a habit (e.g. "write 500 words per day").',
+  goal_tiers: ['3 years', '6 months', '1 month', '1 week', 'today'],
+} as const;
+
 /**
  * Create an McpServer with all tools and resources registered,
  * bound to the given ClearpathsClient.
@@ -461,7 +480,11 @@ export function createServer(client: ClearpathsClient): McpServer {
 
   server.resource('ai-context', 'clearpaths://context', async (uri) => {
     const data = await client.getContext();
-    return { contents: [{ uri: uri.href, mimeType: 'application/json', text: JSON.stringify(data, null, 2) }] };
+    const payload = {
+      philosophy: CLEARPATHS_PHILOSOPHY,
+      ...(typeof data === 'object' && data !== null ? data : { data }),
+    };
+    return { contents: [{ uri: uri.href, mimeType: 'application/json', text: JSON.stringify(payload, null, 2) }] };
   });
 
   return server;
